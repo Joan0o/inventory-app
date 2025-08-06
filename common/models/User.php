@@ -3,49 +3,34 @@
 namespace common\models;
 
 use Yii;
-use yii\base\NotSupportedException;
-use yii\behaviors\TimestampBehavior;
-use yii\db\ActiveRecord;
-use yii\web\IdentityInterface;
 
 /**
- * User model
+ * This is the model class for table "User".
  *
- * @property integer $id
- * @property string $username
- * @property string $password_hash
- * @property string $password_reset_token
- * @property string $verification_token
- * @property string $email
- * @property string $auth_key
- * @property integer $status
- * @property integer $created_at
- * @property integer $updated_at
- * @property string $password write-only password
+ * @property int $id
+ * @property string $name
+ * @property string $encrypted_password
+ * @property string|null $salt
+ * @property string|null $status
+ * @property string|null $role
  */
-class User extends ActiveRecord implements IdentityInterface
+class User extends \yii\db\ActiveRecord
 {
-    const STATUS_DELETED = 0;
-    const STATUS_INACTIVE = 9;
-    const STATUS_ACTIVE = 10;
 
+    /**
+     * ENUM field values
+     */
+    const STATUS_ACTIVE = 'active';
+    const STATUS_INACTIVE = 'inactive';
+    const ROLE_ADMIN = 'admin';
+    const ROLE_BASIC = 'basic';
 
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return '{{%user}}';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-        ];
+        return 'User';
     }
 
     /**
@@ -54,160 +39,120 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            [['salt', 'status', 'role'], 'default', 'value' => null],
+            [['name', 'encrypted_password'], 'required'],
+            [['status', 'role'], 'string'],
+            [['name', 'encrypted_password', 'salt'], 'string', 'max' => 250],
+            ['status', 'in', 'range' => array_keys(self::optsStatus())],
+            ['role', 'in', 'range' => array_keys(self::optsRole())],
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public static function findIdentity($id)
+    public function attributeLabels()
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return [
+            'id' => 'ID',
+            'name' => 'Name',
+            'encrypted_password' => 'Encrypted Password',
+            'salt' => 'Salt',
+            'status' => 'Status',
+            'role' => 'Role',
+        ];
     }
 
+
     /**
-     * {@inheritdoc}
+     * column status ENUM value labels
+     * @return string[]
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public static function optsStatus()
     {
-        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+        return [
+            self::STATUS_ACTIVE => 'active',
+            self::STATUS_INACTIVE => 'inactive',
+        ];
     }
 
     /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
+     * column role ENUM value labels
+     * @return string[]
      */
-    public static function findByUsername($username)
+    public static function optsRole()
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return [
+            self::ROLE_ADMIN => 'admin',
+            self::ROLE_BASIC => 'basic',
+        ];
     }
 
     /**
-     * Finds user by password reset token
-     *
-     * @param string $token password reset token
-     * @return static|null
+     * @return string
      */
-    public static function findByPasswordResetToken($token)
+    public function displayStatus()
     {
-        if (!static::isPasswordResetTokenValid($token)) {
-            return null;
-        }
-
-        return static::findOne([
-            'password_reset_token' => $token,
-            'status' => self::STATUS_ACTIVE,
-        ]);
+        return self::optsStatus()[$this->status];
     }
 
     /**
-     * Finds user by verification email token
-     *
-     * @param string $token verify email token
-     * @return static|null
-     */
-    public static function findByVerificationToken($token) {
-        return static::findOne([
-            'verification_token' => $token,
-            'status' => self::STATUS_INACTIVE
-        ]);
-    }
-
-    /**
-     * Finds out if password reset token is valid
-     *
-     * @param string $token password reset token
      * @return bool
      */
-    public static function isPasswordResetTokenValid($token)
+    public function isStatusActive()
     {
-        if (empty($token)) {
-            return false;
-        }
+        return $this->status === self::STATUS_ACTIVE;
+    }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
-        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
-        return $timestamp + $expire >= time();
+    public function setStatusToActive()
+    {
+        $this->status = self::STATUS_ACTIVE;
     }
 
     /**
-     * {@inheritdoc}
+     * @return bool
      */
-    public function getId()
+    public function isStatusInactive()
     {
-        return $this->getPrimaryKey();
+        return $this->status === self::STATUS_INACTIVE;
+    }
+
+    public function setStatusToInactive()
+    {
+        $this->status = self::STATUS_INACTIVE;
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
-    public function getAuthKey()
+    public function displayRole()
     {
-        return $this->auth_key;
+        return self::optsRole()[$this->role];
     }
 
     /**
-     * {@inheritdoc}
+     * @return bool
      */
-    public function validateAuthKey($authKey)
+    public function isRoleAdmin()
     {
-        return $this->getAuthKey() === $authKey;
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function setRoleToAdmin()
+    {
+        $this->role = self::ROLE_ADMIN;
     }
 
     /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
+     * @return bool
      */
-    public function validatePassword($password)
+    public function isRoleBasic()
     {
-        return Yii::$app->security->validatePassword($password, $this->password_hash);
+        return $this->role === self::ROLE_BASIC;
     }
 
-    /**
-     * Generates password hash from password and sets it to the model
-     *
-     * @param string $password
-     */
-    public function setPassword($password)
+    public function setRoleToBasic()
     {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
-    }
-
-    /**
-     * Generates "remember me" authentication key
-     */
-    public function generateAuthKey()
-    {
-        $this->auth_key = Yii::$app->security->generateRandomString();
-    }
-
-    /**
-     * Generates new password reset token
-     */
-    public function generatePasswordResetToken()
-    {
-        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
-    }
-
-    /**
-     * Generates new token for email verification
-     */
-    public function generateEmailVerificationToken()
-    {
-        $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
-    }
-
-    /**
-     * Removes password reset token
-     */
-    public function removePasswordResetToken()
-    {
-        $this->password_reset_token = null;
+        $this->role = self::ROLE_BASIC;
     }
 }
