@@ -1,0 +1,45 @@
+<section class="bg-white p-4 rounded-lg shadow hover:shadow-md transition mb-2">
+  @if(!isEditing){
+  <h3 class="text-lg font-semibold text-gray-800 ">{{ subCategory.name }}</h3>
+  <p class="mt-2 text-sm">
+    Categoría: {{ getCategoryName(editedSubcategory) }} <br>
+    Estado: {{ subCategory.status == 'active' ? 'Activa' : 'Inactiva'}} <br>
+    Cantidad de productos: {{ subCategory.product_count }}
+  </p>
+  <div class="mt-2">
+    <button
+      class="bg-blue-400 hover:bg-blue-300 text-white font-bold py-1 px-1 border-b-4 border-blue-600 hover:border-blue-500 rounded"
+      (click)="toggleEdit()">
+      Editar
+    </button>
+    <button
+      class="ml-2 bg-blue-400 hover:bg-blue-300 text-white font-bold py-1 px-1 border-b-4 border-blue-600 hover:border-blue-500 rounded">
+      Borrar
+    </button>
+  </div>
+  } @else {
+  <div>
+    <input class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="editedSubcategory.name"
+      placeholder="Nombre de la Sub categoría" />
+    <select class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="editedSubcategory.status">
+      <option value="active">Activa</option>
+      <option value="inactive">Inactiva</option>
+    </select>
+    Categoría: {{ getCategoryName(editedSubcategory) }} <br>
+    <select class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="editedSubcategory.category_id">
+      @for(category of categories_list; track $index) {
+      <option value="{{ category.id }}">{{ category.name }} - {{ category.status == 'active' ? 'activa' : 'inactiva'}}</option>
+      }
+    </select>
+
+    <div class="flex gap-2">
+      <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" (click)="saveChanges()">
+        Guardar
+      </button>
+      <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" (click)="cancelEdit()">
+        Cancelar
+      </button>
+    </div>
+  </div>
+  }
+</section>

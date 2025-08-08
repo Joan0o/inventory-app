@@ -3,18 +3,21 @@
 namespace common\models;
 
 use Yii;
+use yii\web\IdentityInterface;
 
 /**
- * This is the model class for table "User".
+ * This is the model class for table "user".
  *
  * @property int $id
  * @property string $name
- * @property string $encrypted_password
+ * @property string $password_hash
  * @property string|null $salt
  * @property string|null $status
  * @property string|null $role
+ * @property string $auth_key
+ * @property int $deleted
  */
-class User extends \yii\db\ActiveRecord
+class User extends \yii\db\ActiveRecord implements IdentityInterface
 {
 
     /**
@@ -30,7 +33,7 @@ class User extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'User';
+        return 'user';
     }
 
     /**
@@ -40,9 +43,11 @@ class User extends \yii\db\ActiveRecord
     {
         return [
             [['salt', 'status', 'role'], 'default', 'value' => null],
-            [['name', 'encrypted_password'], 'required'],
+            [['deleted'], 'default', 'value' => 0],
+            [['name', 'password_hash', 'auth_key'], 'required'],
             [['status', 'role'], 'string'],
-            [['name', 'encrypted_password', 'salt'], 'string', 'max' => 250],
+            [['deleted'], 'integer'],
+            [['name', 'password_hash', 'salt', 'auth_key'], 'string', 'max' => 250],
             ['status', 'in', 'range' => array_keys(self::optsStatus())],
             ['role', 'in', 'range' => array_keys(self::optsRole())],
         ];
@@ -56,10 +61,12 @@ class User extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Name',
-            'encrypted_password' => 'Encrypted Password',
+            'password_hash' => 'Password Hash',
             'salt' => 'Salt',
             'status' => 'Status',
             'role' => 'Role',
+            'auth_key' => 'Auth Key',
+            'deleted' => 'Deleted',
         ];
     }
 
@@ -154,5 +161,75 @@ class User extends \yii\db\ActiveRecord
     public function setRoleToBasic()
     {
         $this->role = self::ROLE_BASIC;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function findIdentity($id)
+    {
+        return static::findOne($id);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        // If you don't use API tokens, you can throw an exception
+        // Or look up a column like "access_token"
+        return static::findOne(['access_token' => $token]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->getPrimaryKey();
+    }
+
+    public function getAuthKey()
+    {
+        return $this->auth_key;
+    }
+
+    public function validateAuthKey($authKey)
+    {
+        return $this->getAuthKey() === $authKey;
+    }
+
+    public function generateAuthKey()
+    {
+        $this->auth_key = Yii::$app->security->generateRandomString();
+    }
+
+    public function setPassword($password)
+    {
+        $salt = '321321';
+        $saltedInput = $password . $salt;
+        $hash = hash('sha256', $saltedInput);
+        $customizedHash = strrev(substr($hash, 0, 16));
+
+        echo var_dump($saltedInput, $customizedHash); 
+        $this->setPasswordHash($customizedHash);
+    }
+
+    public static function validatePassword($password, $userhash)
+    {
+        $salt = '321321';
+        $saltedInput = $password . $salt;
+        $hash = hash('sha256', $saltedInput);
+        $customizedHash = strrev(substr($hash, 0, 16));
+
+        return $customizedHash === $userhash;
+    }
+
+    public function setPasswordHash($p){
+        $this->password_hash = $p;
+    }
+    public function getPasswordHash()
+    {
+        return $this->password_hash;
     }
 }

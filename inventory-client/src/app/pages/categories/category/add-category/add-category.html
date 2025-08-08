@@ -1,0 +1,29 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+  <app-header></app-header>
+  <div class="flex flex-1">
+    <app-navbar [link]="'category'"></app-navbar>
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <div>
+        <h2 class="text-2xl font-bold mb-6">Crear categoría</h2>
+        <input class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="newCategory.name"
+          (input)="onInputChange($event)" placeholder="Nombre de la categoría" />
+        <select class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="newCategory.status">
+          <option value="active">Activa</option>
+          <option value="inactive">Inactiva</option>
+        </select>
+
+        <div class="flex gap-2">
+          <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" (click)="saveChanges()">
+            Guardar
+          </button>
+          <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" (click)="cancel()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+  <app-footer></app-footer>
+</div>

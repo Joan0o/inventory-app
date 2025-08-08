@@ -8,8 +8,9 @@ use Yii;
  * This is the model class for table "category".
  *
  * @property int $id
- * @property string $name
+ * @property string|null $name
  * @property string|null $status
+ * @property int $deleted
  *
  * @property Product[] $products
  * @property Subcategory[] $subcategories
@@ -37,10 +38,11 @@ class Category extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['status'], 'default', 'value' => 'active'],
-            [['name'], 'required'],
+            [['name', 'status'], 'default', 'value' => null],
+            [['deleted'], 'default', 'value' => 0],
             [['status'], 'string'],
-            [['name'], 'string', 'max' => 100],
+            [['deleted'], 'integer'],
+            [['name'], 'string', 'max' => 250],
             ['status', 'in', 'range' => array_keys(self::optsStatus())],
         ];
     }
@@ -54,6 +56,7 @@ class Category extends \yii\db\ActiveRecord
             'id' => 'ID',
             'name' => 'Name',
             'status' => 'Status',
+            'deleted' => 'Deleted',
         ];
     }
 

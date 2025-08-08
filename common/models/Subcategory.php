@@ -12,6 +12,7 @@ use Yii;
  * @property string|null $name
  * @property string|null $status
  * @property int $product_count
+ * @property int $deleted
  *
  * @property Category $category
  * @property Product[] $products
@@ -41,7 +42,8 @@ class Subcategory extends \yii\db\ActiveRecord
         return [
             [['category_id', 'name', 'status'], 'default', 'value' => null],
             [['product_count'], 'default', 'value' => 1],
-            [['category_id', 'product_count'], 'integer'],
+            [['deleted'], 'default', 'value' => 0],
+            [['category_id', 'product_count', 'deleted'], 'integer'],
             [['status'], 'string'],
             [['name'], 'string', 'max' => 250],
             ['status', 'in', 'range' => array_keys(self::optsStatus())],
@@ -60,6 +62,7 @@ class Subcategory extends \yii\db\ActiveRecord
             'name' => 'Name',
             'status' => 'Status',
             'product_count' => 'Product Count',
+            'deleted' => 'Deleted',
         ];
     }
 
@@ -128,5 +131,10 @@ class Subcategory extends \yii\db\ActiveRecord
     public function setStatusToInactive()
     {
         $this->status = self::STATUS_INACTIVE;
+    }
+
+    public function extraFields()
+    {
+        return ['category'];
     }
 }

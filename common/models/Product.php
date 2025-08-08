@@ -10,7 +10,8 @@ use Yii;
  * @property int $id
  * @property int|null $category_id
  * @property int|null $subcategory_id
- * @property string $name
+ * @property string|null $name
+ * @property int $deleted
  *
  * @property Category $category
  * @property Subcategory $subcategory
@@ -33,10 +34,10 @@ class Product extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['category_id', 'subcategory_id'], 'default', 'value' => null],
-            [['category_id', 'subcategory_id'], 'integer'],
-            [['name'], 'required'],
-            [['name'], 'string', 'max' => 100],
+            [['category_id', 'subcategory_id', 'name'], 'default', 'value' => null],
+            [['deleted'], 'default', 'value' => 0],
+            [['category_id', 'subcategory_id', 'deleted'], 'integer'],
+            [['name'], 'string', 'max' => 250],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
             [['subcategory_id'], 'exist', 'skipOnError' => true, 'targetClass' => Subcategory::class, 'targetAttribute' => ['subcategory_id' => 'id']],
         ];
@@ -52,6 +53,7 @@ class Product extends \yii\db\ActiveRecord
             'category_id' => 'Category ID',
             'subcategory_id' => 'Subcategory ID',
             'name' => 'Name',
+            'deleted' => 'Deleted',
         ];
     }
 
@@ -75,4 +77,8 @@ class Product extends \yii\db\ActiveRecord
         return $this->hasOne(Subcategory::class, ['id' => 'subcategory_id']);
     }
 
+    public function extraFields()
+    {
+        return ['category', 'subcategory'];
+    }
 }

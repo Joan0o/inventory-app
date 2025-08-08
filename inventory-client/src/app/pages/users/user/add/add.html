@@ -1,0 +1,67 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+  <app-header></app-header>
+  <div class="flex flex-1">
+    <app-navbar [link]="'users'"></app-navbar>
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <h2 class="text-xl font-bold mb-4">Crear usuario</h2>
+
+      <form [formGroup]="userForm" (ngSubmit)="submit()" class="space-y-4">
+
+        <input formControlName="username" type="text" placeholder="Nombre" class="w-full border p-2 rounded" />
+
+        @if (userForm.get('username')?.touched && userForm.get('username')?.invalid) {
+        <div class="text-red-500 text-sm">Ingrese un nombre</div>
+        }
+
+        <input formControlName="password" type="password" placeholder="Contraseña" class="w-full border p-2 rounded" />
+
+        @if (userForm.get('password')?.touched && userForm.get('password')?.hasError('minlength')) {
+        <div class="text-red-500 text-sm">La contraseña debe tener almenos 6 caracteres</div>
+        }
+
+        <input formControlName="confirmPassword" type="password" placeholder="Confirmar contraseña"
+          class="w-full border p-2 rounded" />
+
+        @if (userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched) {
+        <div class="text-red-500 text-sm">Las contraseñas no coinciden</div>
+        }
+
+        <select formControlName="role" class="w-full border p-2 rounded">
+          <option value="" disabled>Seleccione privilegios de usuario</option>
+          <option value="admin">Administrador</option>
+          <option value="basic">Básico</option>
+        </select>
+
+        @if (userForm.get('role')?.touched && userForm.get('role')?.invalid) {
+        <div class="text-red-500 text-sm">No se olvide del rol c:</div>
+        }
+
+        <select formControlName="status" class="w-full border p-2 rounded">
+          <option value="" disabled>Estado</option>
+          <option value="active" selected>Activo</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+
+        @if (userForm.get('role')?.touched && userForm.get('role')?.invalid) {
+        <div class="text-red-500 text-sm">Estado activo por defecto</div>
+        }
+
+        <button type="submit" [disabled]="isSubmitting || userForm.invalid"
+          class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          {{ isSubmitting ? 'Creando...' : 'Crear usuario' }}
+        </button>
+      </form>
+
+      @if (message) {
+      <p class="mt-4 text-center">{{ message }}</p>
+      }
+      <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" (click)="cancel()">
+        Cancelar
+      </button>
+
+    </main>
+
+  </div>
+  <app-footer></app-footer>
+</div>

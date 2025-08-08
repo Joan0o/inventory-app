@@ -1,0 +1,37 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+  <app-header></app-header>
+  <div class="flex flex-1">
+    <app-navbar [link]="'products'"></app-navbar>
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+      <div>
+        <h2 class="text-2xl font-bold mb-6">Crear producto</h2>
+        <input class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="newProduct.name"
+           placeholder="Nombre del producto" />
+        <select class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="newProduct.status">
+          <option value="active" selected>Activo</option>
+          <option value="inactive">Inactivo</option>
+        </select>
+
+        <select class="border px-3 py-1 rounded w-full mb-2" [(ngModel)]="newProduct.subcategory_id" (change)="changeCategory($event)">
+          <option value="" disabled selected class="text-gray-400">Elija una subcategoría - Categoría</option>
+          
+          @for(subcategory of subcategory_list; track $index) {
+            <option value="{{ subcategory.id }}">{{ subcategory.name }} - {{ getCategoryNameBySubCategoryId(subcategory.id) }}</option>
+          }
+        </select>
+
+        <div class="flex gap-2">
+          <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600" (click)="saveChanges()">
+            Guardar
+          </button>
+          <button class="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500" (click)="cancel()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </main>
+
+  </div>
+  <app-footer></app-footer>
+</div>
